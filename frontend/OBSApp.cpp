@@ -21,6 +21,7 @@
 #include <dialogs/LogUploadDialog.hpp>
 #include <plugin-manager/PluginManager.hpp>
 #include <utility/CrashHandler.hpp>
+#include <utility/OBSInitException.hpp>
 #include <utility/OBSEventFilter.hpp>
 #include <utility/OBSProxyStyle.hpp>
 #if defined(_WIN32) || defined(ENABLE_SPARKLE_UPDATER)
@@ -1130,16 +1131,16 @@ void OBSApp::AppInit()
 	QAccessible::installFactory(alignmentSelectorFactory);
 
 	if (!MakeUserDirs()) {
-		throw "Failed to create required user directories";
+		throw OBS::InitException(OBS::InitError::UserDirectories);
 	}
 	if (!InitGlobalConfig()) {
-		throw "Failed to initialize global config";
+		throw OBS::InitException(OBS::InitError::GlobalConfig);
 	}
 	if (!InitLocale()) {
-		throw "Failed to load locale";
+		throw OBS::InitException(OBS::InitError::Locale);
 	}
 	if (!InitTheme()) {
-		throw "Failed to load theme";
+		throw OBS::InitException(OBS::InitError::Theme);
 	}
 
 	config_set_default_string(userConfig, "Basic", "Profile", Str("Untitled"));
@@ -1181,7 +1182,7 @@ void OBSApp::AppInit()
 	move_basic_to_scene_collections();
 
 	if (!MakeUserProfileDirs()) {
-		throw "Failed to create profile directories";
+		throw OBS::InitException(OBS::InitError::ProfileDirectories);
 	}
 }
 
@@ -1728,12 +1729,12 @@ vector<pair<string, string>> GetLocaleNames()
 {
 	string path;
 	if (!GetDataFilePath("locale.ini", path)) {
-		throw "Could not find locale.ini path";
+		throw OBS::InitException(OBS::InitError::LocaleList, "Could not find locale.ini path");
 	}
 
 	ConfigFile ini;
 	if (ini.Open(path.c_str(), CONFIG_OPEN_EXISTING) != 0) {
-		throw "Could not open locale.ini";
+		throw OBS::InitException(OBS::InitError::LocaleList, "Could not open locale.ini");
 	}
 
 	size_t sections = config_num_sections(ini);

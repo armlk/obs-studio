@@ -20,6 +20,7 @@
 
 #include <OBSApp.hpp>
 #include <qt-wrappers.hpp>
+#include <utility/OBSInitException.hpp>
 #include <widgets/OBSBasic.hpp>
 
 #include <QMessageBox>
@@ -89,8 +90,8 @@ void PluginManager::loadAllPlugins(bool usePortableMode)
 
 	if (!coreModuleLoadSuccess) {
 		loadState_ = State::Failure;
-		//TODO: Replace with structured exception type - https://github.com/obsproject/obs-studio/issues/13394
-		throw "Failed to load core OBS modules. OBS cannot run without these modules. Please try reinstalling OBS.";
+		throw OBS::InitException(OBS::InitError::CoreModules,
+					 "Failed to load core OBS modules. OBS cannot run without these modules.");
 	} else {
 		if (loadMode_ == Mode::Full) {
 			blog(LOG_INFO, "---------------------------------");
