@@ -22,6 +22,7 @@
 #include <dialogs/OBSPermissions.hpp>
 #endif
 #include <utility/BaseLexer.hpp>
+#include <utility/OBSInitException.hpp>
 #include <utility/OBSTranslator.hpp>
 #include <utility/platform.hpp>
 
@@ -690,9 +691,49 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 
 		ret = program.exec();
 
-	} catch (const char *error) {
-		blog(LOG_ERROR, "%s", error);
-		OBSErrorBox(nullptr, "%s", error);
+	} catch (const OBS::InitException &error) {
+		QString message;
+		switch (error.error()) {
+		case OBS::InitError::UserDirectories:
+			message = QTStr("Init.Error.UserDirectories");
+			break;
+		case OBS::InitError::GlobalConfig:
+			message = QTStr("Init.Error.GlobalConfig");
+			break;
+		case OBS::InitError::BasicConfig:
+			message = QTStr("Init.Error.BasicConfig");
+			break;
+		case OBS::InitError::Locale:
+			message = QTStr("Init.Error.Locale");
+			break;
+		case OBS::InitError::Theme:
+			message = QTStr("Init.Error.Theme");
+			break;
+		case OBS::InitError::LocaleList:
+			message = QTStr("Init.Error.LocaleList");
+			break;
+		case OBS::InitError::CoreModules:
+			message = QTStr("Init.Error.CoreModules");
+			break;
+		case OBS::InitError::Audio:
+			message = QTStr("Init.Error.Audio");
+			break;
+		case OBS::InitError::Video:
+			message = QTStr("Init.Error.Video");
+			break;
+		case OBS::InitError::Service:
+			message = QTStr("Init.Error.Service");
+			break;
+		case OBS::InitError::ProfileDirectories:
+			message = QTStr("Init.Error.ProfileDirectories");
+			break;
+		case OBS::InitError::DefaultTransitions:
+			message = QTStr("Init.Error.DefaultTransitions");
+			break;
+		}
+
+		blog(LOG_ERROR, "%s", error.message().empty() ? "Initialization failed" : error.what());
+		OBSErrorBox(nullptr, "%s", QT_TO_UTF8(message));
 	}
 
 	if (restart || restart_safe) {

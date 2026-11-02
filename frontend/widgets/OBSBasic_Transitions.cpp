@@ -17,6 +17,8 @@
 
 #include "OBSBasic.hpp"
 
+#include <utility/OBSInitException.hpp>
+
 #include <algorithm>
 
 #include <components/MenuButton.hpp>
@@ -76,9 +78,8 @@ void OBSBasic::InitDefaultTransitions()
 	// We require transitions in order to function, so exit with an error if
 	// obs-transitions failed to load for whatever reason.
 	if (!fadeTransition || !cutTransition) {
-		// FIXME: https://github.com/obsproject/obs-studio/issues/13394
-		throw "InitDefaultTransitions: Could not load default transitions. Try re-installing OBS Studio from "
-		      "<a href=\"https://obsproject.com/\">obsproject.com</a>.";
+		throw OBS::InitException(OBS::InitError::DefaultTransitions,
+					 "Could not load default transitions");
 	}
 
 	for (OBSSource &tr : defaultTransitions) {

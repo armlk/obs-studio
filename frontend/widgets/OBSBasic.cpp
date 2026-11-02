@@ -40,6 +40,7 @@
 #include <models/SceneCollection.hpp>
 #include <settings/OBSBasicSettings.hpp>
 #include <utility/QuickTransition.hpp>
+#include <utility/OBSInitException.hpp>
 #include <utility/SceneRenameDelegate.hpp>
 #include <utility/ScreenshotObj.hpp>
 #if defined(_WIN32) || defined(WHATSNEW_ENABLED)
@@ -837,14 +838,6 @@ void OBSBasic::InitOBSCallbacks()
 #define STARTUP_SEPARATOR "==== Startup complete ==============================================="
 #define SHUTDOWN_SEPARATOR "==== Shutting down =================================================="
 
-#define UNSUPPORTED_ERROR                                                     \
-	"Failed to initialize video:\n\nRequired graphics API functionality " \
-	"not found.  Your GPU may not be supported."
-
-#define UNKNOWN_ERROR                                                  \
-	"Failed to initialize video.  Your GPU may not be supported, " \
-	"or your graphics drivers may need to be updated."
-
 static inline void LogEncoders()
 {
 	constexpr uint32_t hide_flags = OBS_ENCODER_CAP_DEPRECATED | OBS_ENCODER_CAP_INTERNAL;
@@ -876,10 +869,10 @@ void OBSBasic::OBSInit()
 	ProfileScope("OBSBasic::OBSInit");
 
 	if (!InitBasicConfig()) {
-		throw "Failed to load basic.ini";
+		throw OBS::InitException(OBS::InitError::BasicConfig, "Failed to load basic.ini");
 	}
 	if (!ResetAudio()) {
-		throw "Failed to initialize audio";
+		throw OBS::InitException(OBS::InitError::Audio, "Failed to initialize audio");
 	}
 
 	int ret = 0;
@@ -888,14 +881,14 @@ void OBSBasic::OBSInit()
 
 	switch (ret) {
 	case OBS_VIDEO_MODULE_NOT_FOUND:
-		throw "Failed to initialize video:  Graphics module not found";
+		throw OBS::InitException(OBS::InitError::Video, "Graphics module not found");
 	case OBS_VIDEO_NOT_SUPPORTED:
-		throw UNSUPPORTED_ERROR;
+		throw OBS::InitException(OBS::InitError::Video, "Required graphics API functionality not found");
 	case OBS_VIDEO_INVALID_PARAM:
-		throw "Failed to initialize video:  Invalid parameters";
+		throw OBS::InitException(OBS::InitError::Video, "Invalid parameters");
 	default:
 		if (ret != OBS_VIDEO_SUCCESS) {
-			throw UNKNOWN_ERROR;
+			throw OBS::InitException(OBS::InitError::Video, "Unknown video initialization error");
 		}
 	}
 
@@ -945,7 +938,7 @@ void OBSBasic::OBSInit()
 	blog(LOG_INFO, STARTUP_SEPARATOR);
 
 	if (!InitService()) {
-		throw "Failed to initialize service";
+		throw OBS::InitException(OBS::InitError::Service, "Failed to initialize service");
 	}
 
 	ResetOutputs();
